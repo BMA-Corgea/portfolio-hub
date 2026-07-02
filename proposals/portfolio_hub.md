@@ -21,8 +21,8 @@ Existing assets, as they stand today:
 | Refactor reports | (local, to be located) | Engineering writeups of the GIMS and Compliance Relay rebuilds. Raw material for case-study "how it works" sections. |
 
 **Traction (the honest version).** These products are *not* shipped in the full sense, but they have real early paid validation:
-- **GIMS** — one client paid **$3k** to start the project.
-- **Compliance Relay** — a **~$5k pharma deal is one phone call away**.
+- **GIMS** — one client paid to start the project.
+- **Compliance Relay** — a **pharma deal is one phone call away**.
 
 This is the framing the whole site must respect: *real money, real customers, early stage, actively pursued.* No claims of "in production at scale," no invented metrics, no revenue theater. "First paying client" and "active pharma pilot" are true and strong on their own.
 
@@ -51,7 +51,7 @@ This is the framing the whole site must respect: *real money, real customers, ea
 
 **Landing page (above the fold):**
 - Name + one-sentence positioning ("I build systems that put structure around messy operational work — and get people to pay for them").
-- The two flagship products as cards, each with a one-line problem statement, a "live demo" button, and a traction tag ("First paying client — $3k" / "Active pharma pilot").
+- The two flagship products as cards, each with a one-line problem statement, a "live demo" button, and a traction tag ("First paying client" / "Active pharma pilot").
 - Quiet secondary links: GitHub, resume, contact.
 
 **Case-study page template** (used for both GIMS and Relay):
@@ -108,7 +108,7 @@ The repo is what a technical interviewer opens after the hub convinces them. It 
 Verification is mostly manual (it's a content/presentation site), but must be rigorous about honesty and links.
 
 - **Link integrity:** every demo link, repo link, resume link, and cross-link (hub↔repo↔GUTS site) resolves and lands on the right page. Automate with a link-checker in CI if the framework supports it.
-- **Claim audit:** a dedicated pass reading every factual claim on the site against the "honest framing" rule. No claim of production/scale; traction stated as "$3k first client" / "active pharma pilot" only. This is the single most important check.
+- **Claim audit:** a dedicated pass reading every factual claim on the site against the "honest framing" rule. No claim of production/scale; traction stated qualitatively (first paying client / active pharma pilot); dollar amounts are not published on the site. This is the single most important check.
 - **Responsive/mobile:** landing + both case studies render correctly on mobile and desktop (hiring managers open links on phones).
 - **Performance:** Lighthouse pass — landing loads fast, images/GIFs optimized.
 - **Clean-clone test (repo):** clone `gims-oss` fresh, follow the README quickstart, confirm the app runs and demo credentials work.
@@ -149,7 +149,7 @@ Verification is mostly manual (it's a content/presentation site), but must be ri
 ## Notes for Future Sessions
 
 - **Most important file:** this proposal. The case-study copy drafts (once written) live under `portfolio-hub/` — treat them as the source of truth for positioning.
-- **The non-negotiable constraint:** honest traction framing. GIMS = one $3k client; Relay = ~$5k pharma deal one call away. Nothing is "shipped at scale." Do not let marketing language creep in — the claim audit exists to catch this.
+- **The non-negotiable constraint:** honest traction framing. GIMS = one paying client; Relay = a pharma deal one call away. Dollar amounts are not published on the site. Nothing is "shipped at scale." Do not let marketing language creep in — the claim audit exists to catch this.
 - **GUTS is a footnote, not a headline.** The user explicitly wants it demoted; it won't move the needle unless a reader is already curious. Phase 4 is blocked on a separate "mythos" GUTS proposal that does not exist yet — do not invent its contents.
 - **Audience:** solutions architect / AI engineer / adjacent. Lead with GIMS's schema-engine (systems thinking) and Relay's compliance depth (enterprise credibility).
 - **Don't rebuild anything.** Demos and the GIMS software stay as-is; this is framing + presentation + repo docs.
