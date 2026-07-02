@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GIMS Case Study · Evan</title>
+  <meta name="description" content="GIMS: a schema-driven information-management system that models any workflow as a grammar. Live demo, open source, first paying client." />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html"><span class="mark">E</span> Evan</a>
+      <nav class="nav-links">
+        <a href="gims.html">GIMS</a>
+        <a href="compliance-relay.html">Compliance Relay</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="about.html">About</a>
+        <a href="resume.html">Resume</a>
+        <a class="btn btn-ghost" href="https://github.com/BMA-Corgea" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="container cs-header">
+      <div class="eyebrow">Case study · Information management</div>
+      <h1 class="cs-title">GIMS</h1>
+      <p class="lede" style="color:var(--muted); max-width:60ch;">
+        A generalized information-management system. Describe your domain as a grammar and GIMS
+        becomes the tracker for it: no bespoke build, no rigid off-the-shelf module.
+      </p>
+      <div class="cs-meta">
+        <span class="tag"><span class="dot"></span> First paying client · $3k</span>
+        <span class="tag">Open source</span>
+        <span class="tag">Python · FastAPI · JS</span>
+      </div>
+      <div class="btn-row" style="margin-top:22px;">
+        <a class="btn btn-primary" href="https://gims-demo.vercel.app/" target="_blank" rel="noopener">Open Live demo ↗</a>
+        <a class="btn" href="https://github.com/BMA-Corgea/gims-oss" target="_blank" rel="noopener">Read the source ↗</a>
+        <a class="btn" href="gims-refactor-report.html">Full refactor report →</a>
+      </div>
+    </section>
+
+    <section class="container section-tight">
+
+      <div class="step">
+        <div class="num">01</div>
+        <div>
+          <h3>The problem</h3>
+          <div class="step-body">
+            <p>
+              Operational teams outgrow spreadsheets fast, but the alternatives are bad. A bespoke
+              app is slow and expensive. Off-the-shelf systems (LIMS, ERP, ticketing tools) force
+              your process into <em>their</em> model, and you spend months bending your work to fit software
+              instead of the other way around.
+            </p>
+            <p>
+              The deeper waste: every domain reinvents the same wheel. A lab tracking samples, an HR
+              team tracking onboarding, and a shop tracking repairs are all doing the same thing:
+              records, attributes, actions, history, all behind completely different, incompatible tools.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">02</div>
+        <div>
+          <h3>What I built</h3>
+          <div class="step-body">
+            <p>
+              GIMS treats an organization's information like language. You define your domain as a
+              <strong>grammar</strong>, and the system tracks it:
+            </p>
+            <ul class="feature-list">
+              <li><strong>Nouns</strong> — the entities you track (a sample, a candidate, a work order).</li>
+              <li><strong>Adjectives</strong> — the attributes that describe them (status, owner, due date).</li>
+              <li><strong>Verbs</strong> — the actions and tests you run against them (analyze, approve, ship).</li>
+            </ul>
+            <p style="margin-top:16px;">
+              Because the model is data, not code, the same engine reconfigures to a new domain by
+              editing a schema rather than shipping a new app. A live, no-account demo lets anyone
+              build a working grammar-based tracker in the browser and watch it run.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">03</div>
+        <div>
+          <h3>How it works</h3>
+          <div class="step-body">
+            <p>
+              A <strong>schema-driven core</strong> holds the grammar. Domains live as JSON schemas under
+              <code>projects/</code>, so a new use case is a configuration, not a fork. A
+              <strong>FastAPI</strong> backend (Python) serves the API and record store; a lightweight
+              JavaScript/HTML/CSS front end renders the data-entry and run views. A module system extends
+              behavior (verbs can do real work) without touching the core engine.
+            </p>
+            <ul class="feature-list">
+              <li>Grammar engine: nouns / adjectives / verbs as first-class, composable primitives.</li>
+              <li>JSON-schema domain definitions: configure, don't hard-code.</li>
+              <li>FastAPI + Uvicorn service layer; browser front end with an interactive walkthrough.</li>
+              <li>Example workflows shipped as reference projects so the model is legible, not abstract.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">04</div>
+        <div>
+          <h3>Try it &amp; read it</h3>
+          <div class="step-body">
+            <p>The demo resets on tab close. No account, no install, no real data at risk.</p>
+            <div class="btn-row" style="margin-top:6px;">
+              <a class="btn btn-primary" href="https://gims-demo.vercel.app/" target="_blank" rel="noopener">Live demo ↗</a>
+              <a class="btn" href="https://github.com/BMA-Corgea/gims-oss" target="_blank" rel="noopener">Source on GitHub ↗</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">05</div>
+        <div>
+          <h3>Status &amp; traction</h3>
+          <div class="step-body">
+            <p>
+              GIMS has its <strong>first paying client</strong>, a $3k engagement to build out the project,
+              and is open source. It's early, and I'm actively taking it further: the honest picture is a
+              working, deployed system with real paid validation, not a mature product at scale.
+            </p>
+            <p>
+              It's also the foundation piece of a larger system.
+              <a class="gradient-text" href="roadmap.html">See where it's going →</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>© <span data-year>2026</span> GIMS Technologies. Built by hand.</span>
+      <span><a href="https://github.com/BMA-Corgea" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:evanbr93@gmail.com">Email</a> · <a href="https://www.linkedin.com/in/evan-brown-7abb97332/" target="_blank" rel="noopener">LinkedIn</a></span>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIMS Backend Refactor — Full Report (the whole branch)</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#ffffff; --ink:#1a2230; --muted:#5b6573; --line:#e4e8ee;
+    --accent:#0e7490; --accent2:#1d4ed8;
+    --crit:#b91c1c; --crit-bg:#fee2e2; --high:#c2410c; --high-bg:#ffedd5;
+    --med:#a16207; --med-bg:#fef9c3; --low:#475569; --low-bg:#eef1f5;
+    --ok:#0b6b3a; --ok-bg:#dcfce7;
+    --code-bg:#0f1620; --code-ink:#e6edf3;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em}
+  code{background:#eef1f5;border:1px solid var(--line);border-radius:5px;padding:.05em .35em}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  header.hero{background:linear-gradient(135deg,#0b3b46,#0e7490);color:#fff;padding:48px 0 40px}
+  .eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:12px;opacity:.85;margin:0 0 10px}
+  h1{margin:0 0 12px;font-size:34px;line-height:1.15;font-weight:800}
+  .lede{font-size:18px;max-width:820px;opacity:.96;margin:0}
+  .thesis{margin-top:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+    border-radius:12px;padding:14px 18px;font-size:15.5px}
+  .thesis b{font-weight:700}
+  .meta-line{margin-top:18px;font-size:13px;opacity:.88}
+
+  nav.toc{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line)}
+  nav.toc .wrap{display:flex;flex-wrap:wrap;gap:6px 16px;padding:11px 22px}
+  nav.toc a{font-size:13px;color:var(--muted);font-weight:600}
+  nav.toc a:hover{color:var(--accent)}
+
+  section{padding:40px 0 8px}
+  h2{font-size:24px;margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+  h2 .num{color:var(--accent);font-weight:800;margin-right:10px}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:840px}
+  h3{font-size:17px;margin:24px 0 8px}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:6px 0 8px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px}
+  .stat .n{font-size:29px;font-weight:800;letter-spacing:-.02em;color:var(--accent)}
+  .stat .n.ok{color:var(--ok)}
+  .stat .n.warn{color:var(--high)}
+  .stat .l{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.35}
+
+  .badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .b-crit{color:var(--crit);background:var(--crit-bg)}
+  .b-high{color:var(--high);background:var(--high-bg)}
+  .b-med{color:var(--med);background:var(--med-bg)}
+  .b-low{color:var(--low);background:var(--low-bg)}
+  .b-ok{color:var(--ok);background:var(--ok-bg)}
+
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:8px 0}
+  table{border-collapse:collapse;width:100%;background:var(--panel);font-size:14.5px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f1f4f8;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .add{color:var(--ok);font-weight:700}
+  .del{color:var(--crit);font-weight:700}
+  .ev{color:var(--muted);font-size:13.5px}
+  .sha{font-family:ui-monospace,monospace;font-size:.85em;color:var(--accent);font-weight:700}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  ul.tight{margin:6px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  .path{font-family:ui-monospace,monospace;font-size:.85em;color:#6b21a8;background:#f6f0fb;border:1px solid #ecdcfb;
+    border-radius:5px;padding:.03em .35em}
+
+  .phase{display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px dashed var(--line)}
+  .phase:last-child{border-bottom:none}
+  .pnum{flex:0 0 auto;width:62px;text-align:center}
+  .pnum .day{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+  .pnum .dot{width:36px;height:36px;margin:4px auto 0;border-radius:10px;background:var(--accent);color:#fff;
+    font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .pnum .dot.done{background:var(--ok)}
+  .phase .pbody{flex:1}
+  .phase .pbody h4{margin:0 0 4px;font-size:16px}
+  .phase .pbody p{margin:0;color:var(--ink);font-size:14.5px}
+  .phase .pbody .shas{margin-top:6px;font-size:12px;color:var(--muted)}
+
+  .bar{height:14px;border-radius:7px;background:#eef1f5;overflow:hidden;display:flex;margin:4px 0}
+  .bar i{display:block;height:100%}
+  .barlabel{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:2px}
+
+  .decision{border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:10px;
+    padding:12px 16px;margin:10px 0;background:var(--panel)}
+  .decision b{color:var(--accent2)}
+  .ok-callout{background:#fff;border:1px solid var(--ok-bg);border-left:5px solid var(--ok);
+    border-radius:12px;padding:16px 20px;margin:8px 0}
+  .ok-callout h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .warn-callout{background:#fff;border:1px solid var(--med-bg);border-left:5px solid var(--med);
+    border-radius:12px;padding:16px 20px;margin:8px 0}
+  .warn-callout h3{margin:0 0 8px;color:var(--med);font-size:16px}
+
+  footer{margin-top:46px;border-top:1px solid var(--line);background:#fff}
+  footer .wrap{padding:24px 22px;color:var(--muted);font-size:13.5px}
+  .tag{display:inline-block;background:#eef1f5;border:1px solid var(--line);border-radius:6px;padding:2px 8px;
+    font-size:12px;color:var(--muted);margin:2px 4px 2px 0}
+</style>
+</head>
+<body>
+
+<a href="index.html" style="position:fixed;top:14px;right:16px;z-index:50;font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#fff;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 12px;text-decoration:none;backdrop-filter:blur(6px);">← Portfolio</a>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Full Report · GIMS Backend Refactor · the whole branch</p>
+    <h1>From copy-paste FastAPI to a verifiable, layered platform</h1>
+    <p class="lede">A four-day, 152-commit sprint on <code>refactor/foundation</code> that hardened security and
+      storage, unified the part-of-speech model and the execution path, reorganized the entire HTTP/JSON backend
+      out of "god files" into small role-named packages, and added a real 21 CFR Part 11 compliance core —
+      every step proven behaviour-neutral before it was committed.</p>
+    <div class="thesis">
+      <b>The thesis that made it safe:</b> routes are decorator-defined and the guard baselines are keyed by
+      path/name, not filename — so a move + import-rewrite is provably wiring-neutral. A function-level AST check,
+      an ordered-route fingerprint, three byte-pinned baselines, a no-cloud-SDK-in-core layering guard, and —
+      where the suite was thin — bespoke behaviour-golden harnesses backed every claim of "nothing changed."
+    </div>
+    <p class="meta-line">Branch <code>refactor/foundation</code> · Safety tag <code>pre-refactor</code>
+      (<span class="sha">b162595</span>, 2026-06-23) → <span class="sha">888a295</span> ·
+      <b>152 commits · 533 files · 2026-06-24 → 2026-06-27</b></p>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap">
+  <a href="#snapshot">Snapshot</a>
+  <a href="#timeline">Timeline</a>
+  <a href="#churn">Churn</a>
+  <a href="#built">What got built</a>
+  <a href="#risks">Risk &amp; Part 11</a>
+  <a href="#verify">Verification</a>
+  <a href="#tokens">Token estimate</a>
+  <a href="#next">What's left</a>
+</div></nav>
+
+<!-- ───────────────────────── SNAPSHOT ───────────────────────── -->
+<section id="snapshot"><div class="wrap">
+  <h2><span class="num">01</span>Snapshot</h2>
+  <p class="sub">Despite enormous activity, the codebase ended up <b>smaller and provable</b> — the work was
+    dominated by collapse and dedup, gated on a green baseline at every commit.</p>
+  <div class="stats">
+    <div class="stat"><div class="n">152</div><div class="l">commits<br>over 4 days</div></div>
+    <div class="stat"><div class="n">533</div><div class="l">unique files touched</div></div>
+    <div class="stat"><div class="n">86,896</div><div class="l">cumulative churn<br>(sum of every commit)</div></div>
+    <div class="stat"><div class="n ok">−3,100</div><div class="l">NET lines<br>(the tree shrank)</div></div>
+    <div class="stat"><div class="n ok">563</div><div class="l">tests pass<br>(from ~382 early on)</div></div>
+    <div class="stat"><div class="n ok">8 / 8</div><div class="l">backend phases done<br>(0–8 + R1–R21 + Part 11)</div></div>
+  </div>
+  <div class="ok-callout">
+    <h3>Where it landed</h3>
+    <p style="margin:0">A layered backend — <code>api/routers/</code> (HTTP) · <code>core/</code> (logic) ·
+      <code>nodes/</code> (orchestration) · <code>modules/</code> (registration) · <code>utils/</code> (kernel) —
+      with a unified SQL record store behind a pluggable provider registry, one part-of-speech engine, a
+      hardened-container execution backend, an HMAC-chained Part 11 audit/compliance core, a uniform error
+      contract, and CI. App entry is <code>api.app:app</code>; the live route surface is stable at 320 OpenAPI
+      paths / 368 routes (order-hash <code>b361335f…</code>).</p>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── TIMELINE ───────────────────────── -->
+<section id="timeline"><div class="wrap">
+  <h2><span class="num">02</span>Timeline — how it unfolded</h2>
+  <p class="sub">The branch moved in waves: build the kernel &amp; contracts, unify the domain model, cut storage
+    over to SQL, harden execution, then reorganize the whole HTTP layer, collapse the duplication, and finish
+    with compliance + the last cohesion items.</p>
+
+  <div class="card">
+    <div class="phase"><div class="pnum"><div class="day">06-23</div><div class="dot done">0–2</div></div>
+      <div class="pbody"><h4>Foundation — hygiene · shared kernel · error contract</h4>
+        <p>Pinned <code>requirements.txt</code>, consolidated <code>utils/{logger,paths,config,atomic}</code> as
+          the kernel, and introduced <code>core/errors.py AppError</code> + a central handler so every failure
+          renders one envelope. (The error-contract <i>tail</i> and CI were finished on 06-27.)</p>
+        <div class="shas">tag <span class="sha">pre-refactor b162595</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-24</div><div class="dot done">3</div></div>
+      <div class="pbody"><h4>Cohesion core — one part-of-speech engine</h4>
+        <p>Built <code>core/words/</code>: <code>WordType</code>, <code>WordHandler</code>, behaviors, the unified
+          <code>Descriptor</code>, validation, <code>WordRegistry</code>, a single normalize-on-read choke point
+          (<code>reader.read_types</code> tolerates list <i>or</i> keyed-dict on disk), and one read-only
+          <code>/pos</code> surface. Editor + workbench + audit now validate through one engine.</p>
+        <div class="shas"><span class="sha">8556c74</span> · <span class="sha">db6e772</span> · <span class="sha">1d6324e</span> · <span class="sha">1bc2583</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-24</div><div class="dot done">4</div></div>
+      <div class="pbody"><h4>Dispatch foundation — typed RunContext + executor registry</h4>
+        <p>A typed <code>RunContext</code> at the GUI boundary and a one-lookup kind→executor registry, replacing
+          inline <code>if kind=="parser"</code> branching.</p>
+        <div class="shas"><span class="sha">e3b1322</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-24</div><div class="dot done">5</div></div>
+      <div class="pbody"><h4>Storage unification — JSONL/folders → one SQL <code>instances</code> table</h4>
+        <p>Provider-neutral ports (<code>core/storage/ports.py</code>, zero cloud SDK) + local adapter + a unified
+          <code>SqlRecordStore</code> + a JSONL→SQL migrator. A reconciliation gate <i>proved</i> the old SQL store
+          and <code>items.jsonl</code> had diverged at the field level; owner chose SQL-authoritative. Then the
+          <b>live cutover on the LIMS data</b> (md5-verified backup + tag <code>pre-phase5-cutover</code>): 222
+          rows into <code>instances</code>, images relocated, <code>nouns/</code> folders retired, and the whole
+          app rewired to read/write through <code>factory.get_record_store()</code>.</p>
+        <div class="shas"><span class="sha">8c99db9</span> · <span class="sha">bcefc76</span> · <span class="sha">c8dc301</span> → app-rewire <span class="sha">91a985c…2bc5183</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-25</div><div class="dot done">6</div></div>
+      <div class="pbody"><h4>Backends &amp; hardening — R15 execution + R21 front door</h4>
+        <p>One <code>ExecutionBackend</code> seam with the <b>hardened container as the default</b> (in-process
+          gated behind a flag), a hardened command builder (<code>utils/container_run.py</code>: non-root,
+          <code>--cap-drop=ALL</code>, read-only rootfs + tmpfs, no-new-privileges, pid/mem/cpu caps,
+          <code>--network=none</code>), and a host-gateway artifact broker (path-containment, no-symlink,
+          ext+magic-byte allow-list, size/count caps). Verified end-to-end on real rootless podman. Plus the R21
+          page-node/module factories + single registry-mounted front door.</p>
+        <div class="shas"><span class="sha">5da3c20…32463a7</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-25</div><div class="dot done">6+</div></div>
+      <div class="pbody"><h4>Orchestration-engine hardening</h4>
+        <p>Fail-fast/loud startup validation (no silent duplicate-name overwrite), guards fail-closed, the live
+          trigger chain de-silenced + per-handler timeout (an <code>EventDispatcher</code> down-payment), and a
+          shared-singleton mount dedup that collapsed 947→375 route entries with paths unchanged.</p>
+        <div class="shas"><span class="sha">39043af…ce6a416</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-25→26</div><div class="dot done">RE</div></div>
+      <div class="pbody"><h4>Backend reorganization — passes 1–4 (the "god files")</h4>
+        <p>The big structural sweep, one file at a time, each move proven verbatim. <b>Pass 1:</b> fixed a secretly
+          broken guard (an incidental FastAPI 0.138 upgrade had hidden 311/337 routes), reaped dead code, moved
+          <code>gui/*_gui.py</code>→<code>api/routers/</code> and <code>gui_main.py</code>→<code>api/app.py</code>,
+          split 6 god files. <b>Pass 2:</b> the other 6 god files + <code>_normalize_for_psycopg</code>×9 deduped +
+          full prefix cleanup. <b>Pass 3:</b> verb-log dedup. <b>Pass 4:</b> the <code>make_compliance_node</code>
+          factory collapsed 13 clones (<b>−5,893 lines</b>) + the archive_workbench split.</p>
+        <div class="shas"><span class="sha">38a8481…e3b4aa1</span> · <span class="sha">6b3ce7b…55040ce</span> · <span class="sha">552acf5</span> · <span class="sha">3527229…d7d6cee</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-26</div><div class="dot done">R18</div></div>
+      <div class="pbody"><h4>Twin-tree Descriptor collapse</h4>
+        <p>Cut the live consumers onto the unified <code>Descriptor</code> and deleted the two legacy twin trees
+          (12 files, <b>−1,032 lines</b>), proven neutral by an old-vs-new equivalence harness before deletion.
+          The backend reorg deferred-list was now empty.</p>
+        <div class="shas"><span class="sha">5132ff3</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-27</div><div class="dot done">P11</div></div>
+      <div class="pbody"><h4>21 CFR Part 11 compliance core</h4>
+        <p>Replaced the cosmetic unkeyed checksum with a real <b>HMAC tamper-evidence chain</b> (over
+          <code>prev_checksum</code> + <code>chain_seq</code> + signature fields), server-side two-component
+          e-signatures at the append chokepoint, sealed signed exports on every compliance/audit read, a
+          least-privilege <code>gims_compliance_writer</code> DB role, and trusted/validated time. <b>P8 was
+          live-verified on real Postgres 16</b> — the restricted role is denied UPDATE/DELETE/TRUNCATE by GRANT
+          (SQLSTATE 42501). A 6-agent reconciliation audit then re-verified every phase against live code.</p>
+        <div class="shas"><span class="sha">70b3b76…56f6215</span> · backup-integrity guard <span class="sha">8c96b44</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-27</div><div class="dot done">0/2</div></div>
+      <div class="pbody"><h4>Phase 0 + Phase 2 tail — CI, error-contract close-out</h4>
+        <p>Added <code>pyproject.toml</code> (ruff/pyright) + a CI pipeline (pytest + ruff), converted the last 45
+          <code>HTTPException</code> sites to <code>AppError</code>, audited all 163 silent <code>except</code>
+          blocks (156 intentional, 7 fixed), and <b>fixed 4 latent NameError bugs</b> in untested branches —
+          including a 500 on every successful image upload.</p>
+        <div class="shas"><span class="sha">fc5af9e…90baaf3</span></div></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-27</div><div class="dot done">3/4/5</div></div>
+      <div class="pbody"><h4>Final cohesion / dispatch / storage-ergonomics — backend COMPLETE</h4>
+        <p>The wordtype migration + reader-bypass data-loss fix, the pluggable storage-provider registry, the
+          <code>ExecutionService</code> extraction from the 426-line <code>run_custom_tool</code> (proven by a
+          golden harness + a real container run), and the adjective/adverb descriptor-router collapse. See the
+          companion <b>session report</b> for this day's detail.</p>
+        <div class="shas"><span class="sha">9768602…888a295</span> — 8 commits</div></div></div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── CHURN ───────────────────────── -->
+<section id="churn"><div class="wrap">
+  <h2><span class="num">03</span>Cumulative churn</h2>
+  <p class="sub">Two numbers answer two questions: the <b>net diff</b> (how the tree differs end-to-end) and the
+    <b>cumulative churn</b> (total activity, counting a line re-edited across N commits N times).</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0">Net diff (start → end)</h3>
+      <div class="bar"><i style="width:48%;background:var(--ok)"></i><i style="width:52%;background:var(--crit)"></i></div>
+      <div class="barlabel"><span class="add">+38,205 ins</span><span class="del">−41,305 del</span></div>
+      <p style="margin:8px 0 0;font-size:14px">560 files · <b>net −3,100 lines</b>. The refactor was net-<i>reductive</i>:
+        god-file splits, the −5,893 compliance-factory collapse, the −1,032 twin-tree collapse and ~770 lines of
+        dead-code reaping removed more than was added.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Cumulative churn (all 152 commits)</h3>
+      <div class="bar"><i style="width:49%;background:var(--ok)"></i><i style="width:51%;background:var(--crit)"></i></div>
+      <div class="barlabel"><span class="add">+42,693 ins</span><span class="del">−44,203 del</span></div>
+      <p style="margin:8px 0 0;font-size:14px"><b>86,896 lines churned</b> across the branch — the true measure of
+        work. Roughly 572 lines of churn per commit, 533 distinct files touched.</p>
+    </div>
+  </div>
+
+  <h3>Commits per day</h3>
+  <div class="card" style="padding:14px 20px">
+    <div style="display:grid;grid-template-columns:70px 1fr 50px;gap:6px 12px;align-items:center;font-size:14px">
+      <span>06-24</span><div class="bar" style="margin:0"><i style="width:100%;background:var(--accent)"></i></div><b>74</b>
+      <span>06-25</span><div class="bar" style="margin:0"><i style="width:28%;background:var(--accent)"></i></div><b>21</b>
+      <span>06-26</span><div class="bar" style="margin:0"><i style="width:53%;background:var(--accent)"></i></div><b>39</b>
+      <span>06-27</span><div class="bar" style="margin:0"><i style="width:24%;background:var(--accent)"></i></div><b>18</b>
+    </div>
+  </div>
+
+  <h3>Highest-churn files (cumulative ins+del)</h3>
+  <p class="sub" style="margin-bottom:8px">These are exactly the god files that were split and the deduped engines
+    — high churn here reflects collapse, not feature sprawl.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>File (often since split / renamed)</th><th class="num">churn</th></tr></thead>
+    <tbody>
+      <tr><td><span class="path">core/core_run_customs.py</span> → <code>core/run_custom/*</code></td><td class="num">3,038</td></tr>
+      <tr><td><span class="path">api/routers/runlog_workbench.py</span> → package</td><td class="num">2,311</td></tr>
+      <tr><td><span class="path">api/i_o.py</span> → <code>api/iostore/*</code></td><td class="num">1,817</td></tr>
+      <tr><td><span class="path">api/routers/nodes_compliance.py</span> → factory + configs</td><td class="num">1,764</td></tr>
+      <tr><td><span class="path">api/routers/account_roles.py</span></td><td class="num">1,523</td></tr>
+      <tr><td><span class="path">gui/archive_workbench_gui.py</span> → <code>api/routers/archive_workbench/*</code></td><td class="num">1,498</td></tr>
+      <tr><td><span class="path">api/routers/backup.py</span></td><td class="num">1,297</td></tr>
+      <tr><td><span class="path">core/run_custom/runner.py</span></td><td class="num">1,263</td></tr>
+      <tr><td><span class="path">core/core_audit.py</span> → <code>core/audit/*</code></td><td class="num">1,219</td></tr>
+      <tr><td><span class="path">api/routers/verb.py</span></td><td class="num">1,100</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<!-- ───────────────────────── BUILT ───────────────────────── -->
+<section id="built"><div class="wrap">
+  <h2><span class="num">04</span>What got built</h2>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Layered structure</h3>
+      <ul class="tight">
+        <li><code>api/routers/</code> — HTTP/JSON, decorator-defined routes</li>
+        <li><code>core/</code> — pure logic (no cloud SDK; layering-guarded)</li>
+        <li><code>nodes/</code> — orchestration nodes · <code>modules/</code> — registration</li>
+        <li><code>utils/</code> — the kernel (logger, paths, config, atomic)</li>
+        <li>No <code>*_gui.py</code>; no <code>core_*</code>/<code>*_module</code>/<code>*_node</code> filename prefixes</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Storage</h3>
+      <ul class="tight">
+        <li>One unified SQL <code>instances</code> table; per-noun tables / <code>items.jsonl</code> / <code>nouns/</code> retired</li>
+        <li>Provider-neutral ports + a <b>pluggable provider registry</b> (local/aws built-in, entry-point discovery)</li>
+        <li>Blobs via <code>ObjectStore</code>; boto3 isolated to <code>api/</code></li>
+        <li>Transactional unit-of-work (R4); locked <code>IdService</code> (R1)</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Domain &amp; execution</h3>
+      <ul class="tight">
+        <li>One part-of-speech engine: <code>WordType</code>/<code>Descriptor</code>/<code>WordRegistry</code>, twin trees deleted</li>
+        <li>Hardened-container execution backend (default) + artifact broker</li>
+        <li><code>ExecutionService</code> extracted from the custom-tool monolith</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Safety &amp; contracts</h3>
+      <ul class="tight">
+        <li>21 CFR Part 11: HMAC-chained audit/compliance, two-component e-sign, sealed exports, least-privilege role, trusted time</li>
+        <li>Uniform <code>AppError</code> error envelope; silent-except audit</li>
+        <li>CI (pytest + ruff) on every push/PR; <code>ruff</code>-clean tree</li>
+        <li>Request-scoped <code>EventDispatcher</code> (R7); server-side gate sign-off (R6)</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── RISKS ───────────────────────── -->
+<section id="risks"><div class="wrap">
+  <h2><span class="num">05</span>Risk catalog &amp; Part 11</h2>
+  <p class="sub">The refactor was scoped against a risk catalog <b>R1–R21</b> and a 21 CFR Part 11 parity gap
+    <b>P1–P10</b>. Headline outcomes below; full file:line evidence lives in
+    <span class="path">proposals/gims_project_refactor.md</span>.</p>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Risk catalog — R1–R21 <span class="badge b-ok">done</span></h3>
+      <ul class="tight">
+        <li><b>R1</b> locked id service · <b>R4</b> transactional record store</li>
+        <li><b>R6</b> server-side gate sign-off · <b>R7</b> request-scoped EventDispatcher</li>
+        <li><b>R9</b> resilient scheduler + run-history · <b>R10</b> upload hardening</li>
+        <li><b>R15</b> hardened-container execution + artifact broker</li>
+        <li><b>R17</b> atomic archive (DB+FS or rollback) · <b>R18</b> twin-tree collapse · <b>R19</b> audit engine</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Part 11 — P1–P10 <span class="badge b-ok">P1–6, 8–10</span></h3>
+      <ul class="tight">
+        <li><b>P1–P3, P5</b> HMAC tamper-evidence chain + verifier</li>
+        <li><b>P4</b> server-side two-component e-sign at the append chokepoint</li>
+        <li><b>P6</b> auth + sealed signed exports on every read</li>
+        <li><b>P8</b> least-privilege DB role — <b>live-verified on Postgres</b> (GRANT denies writes, SQLSTATE 42501)</li>
+        <li><b>P9</b> trusted/validated time · <b>P10</b> audit log HMAC-chained too</li>
+        <li><b>P7</b> is the one intentional open-logging deviation (documented)</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── VERIFICATION ───────────────────────── -->
+<section id="verify"><div class="wrap">
+  <h2><span class="num">06</span>How "nothing changed" was proven</h2>
+  <p class="sub">The discipline that let 152 commits land without regressions: layered, independent checks, run
+    after every commit.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0">Structural guards</h3>
+      <ul class="tight">
+        <li><b>Ordered-route fingerprint</b> — a hash of every <code>path::methods</code> in registration order; byte-identical for wiring-neutral moves</li>
+        <li><b>Three byte-pinned baselines</b> — OpenAPI paths, all-routes, route-order</li>
+        <li><b>Function-level AST check</b> — proves a body moved verbatim across a split</li>
+        <li><b>Layering guard</b> — <code>core/</code> never imports a cloud SDK; factory imports stay lazy</li>
+      </ul></div>
+    <div class="card">
+      <h3 style="margin-top:0">Behavioural proof where the suite was thin</h3>
+      <ul class="tight">
+        <li><b>Behaviour-golden harnesses</b> — pin endpoint responses / side effects PRE vs POST (compliance envelopes, the custom-tool runner, the descriptor routers)</li>
+        <li><b>Equivalence harnesses</b> — old-vs-new call-for-call before deleting legacy trees</li>
+        <li><b>Live runs</b> — real hardened-container parser on rootless podman; P8 on real Postgres</li>
+        <li><b>Lesson banked:</b> AST proves bodies, not module-scope imports — a full-suite run catches the dropped <code>import</code></li>
+      </ul></div>
+  </div>
+  <div class="ok-callout"><h3>Test baseline grew the whole way</h3>
+    <p style="margin:0">~382 → 406 → 471 → 484 → 534 → <b>563 passing</b>, with a stable set of pre-existing
+      environment/isolation failures and zero new regressions introduced by the refactor.</p></div>
+</div></section>
+
+<!-- ───────────────────────── TOKENS ───────────────────────── -->
+<section id="tokens"><div class="wrap">
+  <h2><span class="num">07</span>Token / effort estimate (whole refactor)</h2>
+  <p class="sub"><b>Not measured — extrapolated.</b> There is no token-accounting tool exposed inside a session, so
+    these are methodology-based estimates with deliberately wide bands. The <b>usage dashboard is the only
+    authoritative source</b> for cumulative spend; <code>/cost</code> gives the per-session truth.</p>
+  <div class="stats">
+    <div class="stat"><div class="n">~13–18</div><div class="l">work sessions<br>(several with multi-agent workflows)</div></div>
+    <div class="stat"><div class="n">~1.5–3M</div><div class="l">output tokens<br>(everything actually written)</div></div>
+    <div class="stat"><div class="n warn">~100–300M</div><div class="l">total tokens processed<br>(rough order-of-magnitude)</div></div>
+  </div>
+  <div class="warn-callout">
+    <h3>Why the "processed" total is so large</h3>
+    <ul class="tight" style="margin:0">
+      <li><b>Per-turn context re-reads.</b> Every turn re-sends the growing conversation (system prompt + all
+        prior messages + tool results). ~13–18 sessions each processing on the order of a few million tokens
+        (mostly cache) already lands around <b>~75–160M</b>.</li>
+      <li><b>Multi-agent fan-outs.</b> The refactor leaned on workflows &amp; audits — a 6-agent reconciliation
+        audit, an 8-agent engine scan, read-only split-map Workflows, per-file split subagents. <b>Each subagent
+        carries its own context</b>, adding tens of millions more.</li>
+      <li><b>It's mostly cache.</b> The large majority of "processed" is <i>prompt-cache hits</i>, billed at a
+        fraction of fresh input — so dollar cost is far below what the processed count implies.</li>
+    </ul>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Scope</th><th class="num">output (written)</th><th class="num">total processed</th><th>basis</th></tr></thead>
+    <tbody>
+      <tr><td>A single focused session (e.g. the 06-27 backend close-out, 8 commits)</td><td class="num">~55–80k</td><td class="num">~4–8M</td><td>measured churn + ~90 turns × growing context</td></tr>
+      <tr><td><b>Whole refactor (152 commits)</b></td><td class="num"><b>~1.5–3M</b></td><td class="num"><b>~100–300M</b></td><td>~13–18 sessions scaled + subagent/workflow fan-out</td></tr>
+    </tbody>
+  </table></div>
+  <p class="ev">Bands could be off by 2–3×. Treat the whole-refactor figure as "order tens-to-hundreds of millions
+    processed, low-single-digit millions written" — and confirm against the usage dashboard.</p>
+</div></section>
+
+<!-- ───────────────────────── NEXT ───────────────────────── -->
+<section id="next"><div class="wrap">
+  <h2><span class="num">08</span>What's left</h2>
+  <p class="sub">The backend refactor is complete. The remaining work is front-end only.</p>
+  <ul class="tight">
+    <li><b>Phase 8 — front end:</b> the "Watery" restyle of the 22 <span class="path">gui/components/*.html</span>
+      (only the launcher is done), a real build step, and grid consolidation.</li>
+    <li><b>Optional UI follow-ups:</b> signature-meaning dropdown on the reason-sign modal; a viewer for the
+      sealed-export headers.</li>
+  </ul>
+  <div class="ok-callout" style="margin-top:14px"><h3>Backend status: complete</h3>
+    <p style="margin:0">Phases 0–8 (backend), the risk catalog R1–R21, and the 21 CFR Part 11 track are done.
+      <code>handoff.md</code> at the repo root is the canonical, up-to-date record.</p></div>
+</div></section>
+
+<footer><div class="wrap">
+  <span class="tag">refactor/foundation</span>
+  <span class="tag">pre-refactor b162595 → 888a295</span>
+  <span class="tag">152 commits · 4 days</span>
+  <span class="tag">533 files</span>
+  <span class="tag">cumulative churn 86,896</span>
+  <span class="tag">net −3,100</span>
+  <span class="tag">563 pass / 6 known-fail / 9 skip</span>
+  <p style="margin:12px 0 0">Full-refactor report · companion to the per-session report
+    (<code>gims_session_2026-06-27_report.html</code>) · formatting borrowed from
+    <code>gims_reorg_change_report.html</code> · token figures are in-session estimates, not measurements —
+    the usage dashboard is the authoritative cumulative source.</p>
+</div></footer>
+
+</body>
+</html>

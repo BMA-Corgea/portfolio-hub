@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIMS Compliance Relay — Full Report (refactor + Part 11 hardening)</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#ffffff; --ink:#1a2230; --muted:#5b6573; --line:#e4e8ee;
+    --accent:#0e7490; --accent2:#1d4ed8;
+    --crit:#b91c1c; --crit-bg:#fee2e2; --high:#c2410c; --high-bg:#ffedd5;
+    --med:#a16207; --med-bg:#fef9c3; --low:#475569; --low-bg:#eef1f5;
+    --ok:#0b6b3a; --ok-bg:#dcfce7;
+    --code-bg:#0f1620; --code-ink:#e6edf3;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em}
+  code{background:#eef1f5;border:1px solid var(--line);border-radius:5px;padding:.05em .35em}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  header.hero{background:linear-gradient(135deg,#0b3b46,#0e7490);color:#fff;padding:48px 0 40px}
+  .eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:12px;opacity:.85;margin:0 0 10px}
+  h1{margin:0 0 12px;font-size:34px;line-height:1.15;font-weight:800}
+  .lede{font-size:18px;max-width:840px;opacity:.96;margin:0}
+  .thesis{margin-top:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+    border-radius:12px;padding:14px 18px;font-size:15.5px}
+  .thesis b{font-weight:700}
+  .meta-line{margin-top:18px;font-size:13px;opacity:.88}
+
+  nav.toc{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line)}
+  nav.toc .wrap{display:flex;flex-wrap:wrap;gap:6px 16px;padding:11px 22px}
+  nav.toc a{font-size:13px;color:var(--muted);font-weight:600}
+  nav.toc a:hover{color:var(--accent)}
+  nav.toc a.home{color:var(--accent2)}
+
+  section{padding:40px 0 8px}
+  h2{font-size:24px;margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+  h2 .num{color:var(--accent);font-weight:800;margin-right:10px}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:860px}
+  h3{font-size:17px;margin:24px 0 8px}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:6px 0 8px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px}
+  .stat .n{font-size:29px;font-weight:800;letter-spacing:-.02em;color:var(--accent)}
+  .stat .n.ok{color:var(--ok)}
+  .stat .n.warn{color:var(--high)}
+  .stat .l{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.35}
+
+  .badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .b-crit{color:var(--crit);background:var(--crit-bg)}
+  .b-high{color:var(--high);background:var(--high-bg)}
+  .b-med{color:var(--med);background:var(--med-bg)}
+  .b-low{color:var(--low);background:var(--low-bg)}
+  .b-ok{color:var(--ok);background:var(--ok-bg)}
+
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:8px 0}
+  table{border-collapse:collapse;width:100%;background:var(--panel);font-size:14.5px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f1f4f8;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.c,th.c{text-align:center;white-space:nowrap}
+  .add{color:var(--ok);font-weight:700}
+  .del{color:var(--crit);font-weight:700}
+  .ev{color:var(--muted);font-size:13.5px}
+  .sha{font-family:ui-monospace,monospace;font-size:.85em;color:var(--accent);font-weight:700}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  ul.tight{margin:6px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  .path{font-family:ui-monospace,monospace;font-size:.85em;color:#6b21a8;background:#f6f0fb;border:1px solid #ecdcfb;
+    border-radius:5px;padding:.03em .35em}
+
+  .phase{display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px dashed var(--line)}
+  .phase:last-child{border-bottom:none}
+  .pnum{flex:0 0 auto;width:62px;text-align:center}
+  .pnum .day{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+  .pnum .dot{width:36px;height:36px;margin:4px auto 0;border-radius:10px;background:var(--accent);color:#fff;
+    font-weight:800;display:flex;align-items:center;justify-content:center;font-size:12px}
+  .pnum .dot.done{background:var(--ok)}
+  .phase .pbody{flex:1}
+  .phase .pbody h4{margin:0 0 4px;font-size:16px}
+  .phase .pbody p{margin:0;color:var(--ink);font-size:14.5px}
+
+  .decision{border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:10px;
+    padding:12px 16px;margin:10px 0;background:var(--panel)}
+  .decision b{color:var(--accent2)}
+  .ok-callout{background:#fff;border:1px solid var(--ok-bg);border-left:5px solid var(--ok);
+    border-radius:12px;padding:16px 20px;margin:8px 0}
+  .ok-callout h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .warn-callout{background:#fff;border:1px solid var(--med-bg);border-left:5px solid var(--med);
+    border-radius:12px;padding:16px 20px;margin:8px 0}
+  .warn-callout h3{margin:0 0 8px;color:var(--med);font-size:16px}
+  .crit-callout{background:#fff;border:1px solid var(--crit-bg);border-left:5px solid var(--crit);
+    border-radius:12px;padding:16px 20px;margin:8px 0}
+  .crit-callout h3{margin:0 0 8px;color:var(--crit);font-size:16px}
+
+  footer{margin-top:46px;border-top:1px solid var(--line);background:#fff}
+  footer .wrap{padding:24px 22px;color:var(--muted);font-size:13.5px}
+  .tag{display:inline-block;background:#eef1f5;border:1px solid var(--line);border-radius:6px;padding:2px 8px;
+    font-size:12px;color:var(--muted);margin:2px 4px 2px 0}
+
+  .backlink{position:fixed;top:14px;right:16px;z-index:50;font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    color:#fff;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 12px;
+    text-decoration:none;backdrop-filter:blur(6px)}
+</style>
+</head>
+<body>
+
+<a class="backlink" href="index.html">← Portfolio</a>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Full Report · GIMS Compliance Relay · refactor + Part 11 hardening</p>
+    <h1>From cosmetic compliance to a tamper-evident 21 CFR Part 11 relay</h1>
+    <p class="lede">A ground-up rebuild of a copy-paste-grown FastAPI + Tauri app — whose compliance
+      guarantees were largely decorative — into a lean, defensible Part 11 logging service: one append-only
+      HMAC-chained trail, non-forgeable attribution, real two-component e-signatures, provider-neutral
+      storage, and a two-tier edge → server-of-record custody model. Then a second pass that closed the
+      twelve lagging §11.x edges the design described but the code hadn't yet delivered.</p>
+    <div class="thesis">
+      <b>The constraint that shaped it:</b> Part 11 <i>defensibility first</i>. The integrity spine was
+      hand-built and hand-tested; breadth was built by multi-agent workflows; and every claim of "this
+      control actually holds" was put through an adversarial verification pass whose only job was to
+      refute it — which is how the two deployment-breaking bugs in this report were caught before shipping.
+    </div>
+    <p class="meta-line">Package <code>gims_relay/</code> · standardized on port <b>8400</b> ·
+      <b>134 tests pass on live Postgres (0 skipped)</b> · 122 + 12 PG-skip on the zero-dependency SQLite stack ·
+      2026-06-23 → 2026-06-27</p>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap">
+  <a class="home" href="index.html">← Portfolio</a>
+  <a href="#snapshot">Snapshot</a>
+  <a href="#starting">Starting point</a>
+  <a href="#timeline">Timeline</a>
+  <a href="#built">What got built</a>
+  <a href="#hardening">Part 11 hardening</a>
+  <a href="#verify">Verification</a>
+  <a href="#deferred">Road not taken</a>
+  <a href="#next">Residual &amp; what's left</a>
+</div></nav>
+
+<!-- ───────────────────────── SNAPSHOT ───────────────────────── -->
+<section id="snapshot"><div class="wrap">
+  <h2><span class="num">01</span>Snapshot</h2>
+  <p class="sub">The product captures regulated operational events (primarily instrument/NMR file outputs)
+    into an append-only, tamper-evident, attributable trail. The refactor kept what worked — the storage
+    resolver, the file watcher, the desktop shell, the dormant AWS stack — and rebuilt what didn't actually
+    deliver its claims: identity, the checksum chain, write enforcement, and e-signatures.</p>
+  <div class="stats">
+    <div class="stat"><div class="n ok">134</div><div class="l">tests pass<br>on live Postgres (0 skipped)</div></div>
+    <div class="stat"><div class="n ok">12 / 12</div><div class="l">lagging Part 11 points<br>closed (H1–H4, M1–M6, L1–L3)</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">neutral storage ports<br>(core imports no cloud SDK)</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">deployment tiers<br>edge · server-of-record</div></div>
+    <div class="stat"><div class="n warn">42501</div><div class="l">SQLSTATE — writes denied<br>by GRANT on live PG</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">adversarial workflows<br>(19 · 42 · 13 agents)</div></div>
+  </div>
+  <div class="ok-callout">
+    <h3>Where it landed</h3>
+    <p style="margin:0">A self-contained <code>gims_relay/</code> package: one unified <code>event_log</code>
+      trail, HMAC-SHA256 chained over <code>prev_checksum</code> + <code>chain_seq</code>; server-side
+      non-forgeable attribution; real signed-JWT login + two-component e-signatures bound to the records
+      they sign; sealed, offline-verifiable exports; a hardened file watcher with no silent capture gaps;
+      provider-neutral ports with <b>local (Postgres/SQLite + MinIO/FS)</b> and <b>AWS</b> adapters live and
+      Azure/GCP stubs proving the seam; a durable idempotent edge→server forwarder; scheduled notarization;
+      per-provider Terraform; and CI (including a LocalStack AWS-adapter job and a real-Postgres job).</p>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── STARTING POINT ───────────────────────── -->
+<section id="starting"><div class="wrap">
+  <h2><span class="num">02</span>The starting point — compliance that was cosmetic</h2>
+  <p class="sub">Derived from the parent <code>GIMS-Project</code> and grown by iterative copy-paste, the app
+    <i>looked</i> like a Part 11 system. Underneath, the load-bearing guarantees didn't hold. Every item
+    below was a real defect in the shipped code, not a hypothetical.</p>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Attribution was forgeable <span class="badge b-crit">crit</span></h3>
+      <ul class="tight">
+        <li>Unsigned fake JWTs (<code>alg:none</code>) decoded without verification (<code>_decode_jwt_no_verify</code>)</li>
+        <li><code>X-User-Id</code> header trusted raw from the client</li>
+        <li>A no-token append silently wrote <code>user_id="unknown"</code></li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">The chain was decorative <span class="badge b-crit">crit</span></h3>
+      <ul class="tight">
+        <li><code>checksum</code> was computed <b>without</b> <code>prev_checksum</code> — records weren't actually chained</li>
+        <li>Unkeyed SHA-256: anyone with file access could recompute a "valid" chain</li>
+        <li>Immutability rested only on SQLite triggers, in a file the operator owns</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Enforcement &amp; signing were absent <span class="badge b-high">high</span></h3>
+      <ul class="tight">
+        <li><code>/compliance/log/append</code> bypassed the guard; the watcher posted to it server-side</li>
+        <li>The e-signature node re-authed against a login that didn't exist in the wired build</li>
+        <li>Two rules nodes registered the same route; the RBAC guard was unregistered</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Confidentiality &amp; hygiene <span class="badge b-med">med</span></h3>
+      <ul class="tight">
+        <li>Read/export endpoints fully public and unlogged; <code>audit_log</code> never written</li>
+        <li>Local-clock timestamps; schema DDL defined twice, divergently</li>
+        <li>Committed secrets, DBs, and the full build bundle in the repo</li>
+      </ul></div>
+  </div>
+  <div class="decision"><b>Seven locked decisions (2026-06-23):</b> central Postgres <i>server-of-record</i>
+    target with a working local/offline mode; OS-bound identity for automatic capture but real password
+    re-auth for human e-signatures (§11.200); simplify to a lean service (delete the orchestration
+    framework); Part 11 defensibility first; merge the two logs into one append-only signed
+    <code>event_log</code>; the realistic unit is one workstation / one instrument; and a provider-neutral
+    storage seam — ship local + AWS now, Azure/GCP as documented stubs.</div>
+</div></section>
+
+<!-- ───────────────────────── TIMELINE ───────────────────────── -->
+<section id="timeline"><div class="wrap">
+  <h2><span class="num">03</span>Timeline — how it unfolded</h2>
+  <p class="sub">Five days, in three movements: build the integrity spine and the surrounding service,
+    audit it hard for robustness, then close the compliance edges the first pass had left behind.</p>
+  <div class="card">
+    <div class="phase"><div class="pnum"><div class="day">06-23</div><div class="dot done">CORE</div></div>
+      <div class="pbody"><h4>Integrity spine + breadth build</h4>
+        <p>The HMAC chain (over <code>prev_checksum</code> + <code>chain_seq</code>), canonical encoder, and
+          verifier were hand-built and unit-tested (16 tests); the rest of the package — attribution,
+          e-signatures, access control, sealed exports, the file watcher, the provider-neutral ports — was
+          built by a 19-agent workflow. An adversarial verification pass found 6 real defects (1 refuted);
+          all 6 fixed and locked with regression tests. <b>52 pass / 8 skip</b>, live-verified under uvicorn
+          including a forged-identity rejection.</p></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-23</div><div class="dot done">SVC</div></div>
+      <div class="pbody"><h4>Service, infra, and legacy retirement</h4>
+        <p>Git hygiene (secrets/DBs/bundle untracked + rotated); a durable, ordered, resumable edge→server
+          forwarder; per-provider Terraform + a CI pipeline with a LocalStack AWS-adapter job; a legacy
+          <code>compliance_log → event_log</code> migration tool; the Tauri shell re-pointed at the new app;
+          a served single-page UI; and the entire legacy tree retired so the package is self-contained.</p></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-23</div><div class="dot done">HARDEN</div></div>
+      <div class="pbody"><h4>Robustness audit — 42 agents</h4>
+        <p>A vertical-depth workflow surfaced 36 candidates; 30 confirmed worth fixing (3 critical). 29 fixed
+          — notary deadlock, a proven-zero SQLite fd-leak over 600 ops, path traversal, secret-file perms,
+          shared PG DSN + TLS, threadpool-offloaded async auth, truncated-capture guards, lifespan migration,
+          and more. 1 LOW deferred. <b>63 pass / 8 skip</b>.</p></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-26</div><div class="dot done">AUDIT</div></div>
+      <div class="pbody"><h4>Fresh adversarial audit — the edges are behind the design</h4>
+        <p>A clean audit found the integrity core <b>solid</b> but the custody / forwarding / notarization
+          <i>edges</i> materially behind: the restricted DB role was never implemented, notarization was
+          unscheduled, forwarding dropped attribution and never verified the edge chain (and couldn't even
+          authenticate), and several §11.x account/time/key controls were stubbed. Twelve evidence-backed
+          findings (H1–H4, M1–M6, L1–L3) recorded as a hardening punch-list.</p></div></div>
+
+    <div class="phase"><div class="pnum"><div class="day">06-27</div><div class="dot done">P11</div></div>
+      <div class="pbody"><h4>Part 11 hardening — all 12 closed, then adversarially re-verified</h4>
+        <p>~1,490 insertions across 38 files (10 new) closed every finding. A 13-agent adversarial
+          verification then <b>refuted M3</b> and surfaced a deployment-breaking self-event/forwarded-trail
+          collision; both fixed before this report. Final suite <b>134 pass on live Postgres (0 skipped)</b>;
+          122 + 12 PG-skip on SQLite. The parent <code>GIMS-Project</code> is adopting this integrity core.</p></div></div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── BUILT ───────────────────────── -->
+<section id="built"><div class="wrap">
+  <h2><span class="num">04</span>What got built</h2>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Integrity core</h3>
+      <ul class="tight">
+        <li>One unified <code>event_log</code> — event <i>kind</i> is a column, not a table</li>
+        <li>HMAC-SHA256 over the canonical record <b>including <code>prev_checksum</code></b> + <code>chain_seq</code></li>
+        <li>Standalone verifier module + CLI; gap-detectable per-trail ordinals</li>
+        <li>Append-only via DB triggers <b>plus</b> a least-privilege role (defense in depth)</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Identity &amp; signatures</h3>
+      <ul class="tight">
+        <li>Server-side OS-bound attribution; <code>alg:none</code> / raw <code>X-User-Id</code> trust removed</li>
+        <li>Unattributed events are <b>rejected</b>, never written as <code>"unknown"</code></li>
+        <li>Real signed-JWT password login (Argon2/PBKDF2-600k)</li>
+        <li>Two-component e-signatures (§11.200) capturing signer, meaning, reason, and time — bound to the target record's <code>checksum</code></li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Capture, access &amp; export</h3>
+      <ul class="tight">
+        <li>File watcher: content-addressed dedup, initial downtime-window scan, crash auto-restart with backoff, <code>CAPTURE_FAILED</code> markers — <b>no silent gaps</b></li>
+        <li>Auth + <code>ACCESS</code>/<code>EXPORT</code> logging on every read/export/verify</li>
+        <li>Sealed exports binding the exact rows (<code>rows_digest</code>) and CSV bytes (<code>rendered_sha256</code>); offline verifier re-checks the package</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Provider-neutral platform</h3>
+      <ul class="tight">
+        <li>Ports: <code>SecretProvider</code> · <code>RecordStore</code> · <code>ObjectStore</code> · <code>Notary</code> · <code>TimeSource</code></li>
+        <li>Adapters: local (Postgres/SQLite + MinIO/FS) &amp; AWS (Secrets Manager, RDS, S3 Object-Lock) live; Azure/GCP stubs prove the seam</li>
+        <li>Two tiers from one codebase via <code>RELAY_MODE=local|server</code>; durable idempotent forwarder</li>
+        <li>Notarization (filesystem + S3 object-lock); per-provider Terraform; <code>docker-compose</code> dev = valid on-prem deploy</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── HARDENING ───────────────────────── -->
+<section id="hardening"><div class="wrap">
+  <h2><span class="num">05</span>Part 11 hardening — the twelve lagging edges</h2>
+  <p class="sub">The first build's honest "Remaining" list was understated. A fresh adversarial audit
+    enumerated exactly where a compliance claim in the design was not yet matched by the code — stubbed,
+    unscheduled, unverified, or weaker than described. All twelve were closed in phases R1–R4.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th class="c">ID</th><th class="c">Sev</th><th>Finding → what closed it</th><th class="c">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="c"><b>H1</b></td><td class="c"><span class="badge b-high">high</span></td>
+        <td>Restricted DB role never implemented — app ran with full write. → Two-role custody: runtime role holds <code>SELECT,INSERT</code> only; a separate admin DSN runs DDL. Grant-denial proven on live PG (<span class="sha">SQLSTATE 42501</span>).</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>H2</b></td><td class="c"><span class="badge b-high">high</span></td>
+        <td>Notarization was append-count-triggered, unscheduled, operator-owned. → <code>NotaryScheduler</code> anchors every trail head on an interval <b>and</b> on shutdown; failures emit a <code>SYSTEM</code> event; local-without-WORM logs a startup warning.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>H3</b></td><td class="c"><span class="badge b-high">high</span></td>
+        <td>Forwarding dropped attribution/time/signature and never verified the edge chain. → Forward the <b>whole signed record</b>; a new authenticated ingest recomputes the edge HMAC, enforces a gapless link, and persists verbatim.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>H4</b></td><td class="c"><span class="badge b-high">high</span></td>
+        <td>Forwarder couldn't authenticate to a server-mode ingest. → Service credential (<code>GIMS_FORWARD_TOKEN</code>/<code>GIMS_INGEST_TOKEN</code>), constant-time, fail-closed; startup warning if a forward URL is set without a token.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>M1</b></td><td class="c"><span class="badge b-med">med</span></td>
+        <td>Local-mode keys sat in a plaintext 0600 file. → Opt-in <code>KeyringSecretProvider</code> (DPAPI/Keychain/libsecret) with runtime fallback + a loud silent-downgrade warning; the 0600 file is the documented residual.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>M2</b></td><td class="c"><span class="badge b-med">med</span></td>
+        <td>§11.70 signature binding was cosmetic. → <code>sign()</code> rejects any <code>target_checksum</code> not present in the same trail.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>M3</b></td><td class="c"><span class="badge b-med">med</span></td>
+        <td>A poison event head-of-line-blocked the forwarder. → Stop-on-poison: a genuine 4xx is dead-lettered + raises a <code>SYSTEM</code> event and forwarding halts (never skips, which would gap the replica); 401/403/408/429/5xx are retryable.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>M4</b></td><td class="c"><span class="badge b-med">med</span></td>
+        <td>Trusted time was just the local clock. → <code>NtpValidatedTimeSource</code> labels system-vs-validated time + offset; a startup posture event; edge↔server skew beyond a threshold emits a <code>SYSTEM</code> warning.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>M5</b></td><td class="c"><span class="badge b-med">med</span></td>
+        <td>Open self-service registration. → Bootstrap-then-authenticate: first account is open, then registration needs an authenticated actor; every creation is an audited <code>REGISTER</code> event; a flag can lock it entirely.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>M6</b></td><td class="c"><span class="badge b-med">med</span></td>
+        <td>Postgres — the server-of-record engine — was entirely unverified. → A CI Postgres job runs the conformance + grant-denial suites; <code>GIMS_REQUIRE_PG=1</code> makes the PG fixtures <b>fail, not skip</b>.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>L1</b></td><td class="c"><span class="badge b-low">low</span></td>
+        <td>No lockout on login / sign (§11.300). → In-memory <code>LoginThrottle</code>: per-account attempt throttling + temporary lockout (<code>429</code> + <code>Retry-After</code>); a lockout emits a <code>SYSTEM</code> event.</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+      <tr><td class="c"><b>L2</b></td><td class="c"><span class="badge b-low">low</span></td>
+        <td>Azure/GCP stub constructors raised, so the seam was untested. → Construction allowed (only method use raises); a port-conformance test builds each stub against its ABC. (<b>L3</b>: the "periodic" docstring corrected.)</td>
+        <td class="c"><span class="badge b-ok">done</span></td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<!-- ───────────────────────── VERIFICATION ───────────────────────── -->
+<section id="verify"><div class="wrap">
+  <h2><span class="num">06</span>How the claims were verified</h2>
+  <p class="sub">The whole product <i>is</i> integrity, so verification was adversarial by construction:
+    every "this control holds" claim faced an agent whose only job was to refute it, reading the real code
+    and tests. That is how the two most dangerous bugs in the build were caught.</p>
+  <div class="crit-callout">
+    <h3>The two bugs the adversarial pass caught</h3>
+    <ul class="tight" style="margin:0">
+      <li><b>Server self-events collided with forwarded trails (deployment-breaking).</b> The server wrote
+        its own startup/notary/time events — and the M4 <code>clock_skew</code> event — into the
+        <i>forwarded</i> trail. Under H3's strictly-gapless ingest check, that bumped the server head between
+        forwarded records and cascaded every later record to <code>422</code>: the M4 feature literally
+        self-destructed the H3/M3 forward stream. <b>Fix:</b> all relay-process events now go to a reserved
+        <code>_relay</code> trail; the server never writes into a forwarded trail, so an edge trail stays a
+        verbatim, gapless replica.</li>
+      <li><b>M3 "advance past poison" cascaded a silent gap.</b> Skipping a rejected record breaks the
+        gapless replica for every successor. <b>Fix:</b> stop-on-poison + dead-letter + <code>SYSTEM</code>
+        event; the test that "passed" used a gap-accepting mock and now faithfully proves stop-not-cascade.</li>
+    </ul>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Live, not mocked</h3>
+      <ul class="tight">
+        <li>Restricted role denies <code>UPDATE/DELETE/TRUNCATE</code> <b>by grant</b> on real Postgres 16 (<span class="sha">SQLSTATE 42501</span>) — earlier/distinct from the append-only trigger (<code>P0001</code>)</li>
+        <li>End-to-end under uvicorn, including a forged-identity rejection</li>
+        <li>AWS adapter exercised against LocalStack in CI — secrets, connection shaping, object put/get/list — with no real account</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Test baseline, tracked</h3>
+      <ul class="tight">
+        <li>52 → 63 → <b>134 passing on live Postgres (0 skipped)</b></li>
+        <li>122 + 12 PG-skip on the zero-dependency SQLite-only stack</li>
+        <li>Adapter-conformance suite runs the <i>same</i> tests against every <code>RecordStore</code>/<code>ObjectStore</code>/<code>SecretProvider</code></li>
+        <li>Multi-agent passes: 19 (breadth) · 42 (robustness, 30 confirmed) · 13 (hardening verification)</li>
+      </ul></div>
+  </div>
+  <div class="ok-callout"><h3>Parent-project cross-check</h3>
+    <p style="margin:0">The parent <code>GIMS-Project</code> (a multi-user web LIMS) is <b>adopting this
+      Relay's integrity core</b> and independently implemented the same two-role custody (H1 / its P8) and
+      NTP time (M4 / its P9) — so this work confirms its direction rather than contradicting it. The
+      forwarding items and the <code>_relay</code> trail are Relay-only edge concerns the parent scopes out.</p></div>
+</div></section>
+
+<!-- ───────────────────────── DEFERRED ───────────────────────── -->
+<section id="deferred"><div class="wrap">
+  <h2><span class="num">07</span>The road not taken — OS-delegated signing</h2>
+  <p class="sub">One design decision is worth recording because it shows the compliance reasoning, not just
+    the code: how to let more than one human sign. We shipped <b>Option 1</b> (app-managed accounts + a
+    Manage-Operators surface) and deliberately deferred <b>Option 2</b> (sign with your OS/Windows
+    credential). The trigger for revisiting it is a specific customer request, not a technical whim.</p>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Why a customer might want it</h3>
+      <ul class="tight">
+        <li>One credential — the e-signature password <i>is</i> the Windows password they already type</li>
+        <li>No manual provisioning; offboarding is owned by IT/Active Directory</li>
+        <li>Single source of truth for identity on AD/SSO-invested sites</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">Why it's off by default</h3>
+      <ul class="tight">
+        <li>It <b>inverts the load-bearing invariant</b>: OS identity is resolved server-side and never asserted over the wire — Option 2 opens a brand-new trust boundary</li>
+        <li>Unsafe on shared/local-login workstations — collapses two humans into one identity (violates §11.300(a) / §11.200)</li>
+        <li>Platform fragility (<code>LogonUser</code>/<code>PAM</code> privilege needs) and an inherited §11.300 password-policy burden that must be validated per deployment</li>
+      </ul></div>
+  </div>
+  <div class="decision"><b>Decision:</b> not building now. If requested, start from the <i>hybrid</i> shape —
+    keep <code>app_user</code> as the canonical signing identity, add an explicit audited
+    <code>os_identity ⇄ app_user</code> binding, and gate an OS-reauth branch behind a per-deployment flag
+    (<code>GIMS_SIGN_OS_DELEGATED</code>, default off) — treating the network-trust inversion and the
+    shared-workstation exclusion as non-negotiable acceptance criteria.</div>
+</div></section>
+
+<!-- ───────────────────────── NEXT ───────────────────────── -->
+<section id="next"><div class="wrap">
+  <h2><span class="num">08</span>Residual risks &amp; what's left</h2>
+  <p class="sub">Stated plainly, because a compliance product that hides its residuals isn't defensible.</p>
+  <div class="warn-callout">
+    <h3>Documented residual risks (not bugs)</h3>
+    <ul class="tight" style="margin:0">
+      <li>Forwarded-path attribution trust rests on the <b>shared trail HMAC key</b> — the server proves a key-holder sealed a record, not which human.</li>
+      <li>Local-mode notary is an <b>operator-owned filesystem</b> anchor unless S3/MinIO object-lock is configured (no external WORM).</li>
+      <li>Audit/integrity <code>SYSTEM</code> events follow the codebase's best-effort pattern — but their <i>absence</i> is itself detectable via chain verification.</li>
+    </ul>
+  </div>
+  <ul class="tight">
+    <li><b>Production packaging run:</b> <code>pyinstaller gims_relay.spec</code> → stage into <code>src-tauri/bin/</code> → <code>tauri build</code> (reproduced in CI as an artifact; not committed).</li>
+    <li><b>Optional:</b> git-history purge of the already-rotated, dead, untracked <code>.dev_jwt_secret</code> (deliberately deferred — destructive).</li>
+  </ul>
+  <div class="ok-callout" style="margin-top:14px"><h3>Status: defensible end-to-end</h3>
+    <p style="margin:0">The integrity core, the twelve Part 11 hardening points (H1–L3), and the two-tier
+      custody model are complete and adversarially verified. The product remains — accurately —
+      <b>"designed to support 21 CFR Part 11"</b>; formal computer-system validation (CSV) is the customer's
+      responsibility, as intended.</p></div>
+</div></section>
+
+<footer><div class="wrap">
+  <span class="tag">gims_relay/ package</span>
+  <span class="tag">port 8400</span>
+  <span class="tag">134 pass on live PG · 0 skip</span>
+  <span class="tag">12/12 Part 11 points closed</span>
+  <span class="tag">5 storage ports · local + AWS live</span>
+  <span class="tag">edge → server-of-record</span>
+  <span class="tag">SQLSTATE 42501 (grant-denied writes)</span>
+  <p style="margin:12px 0 0">Compiled from <code>compliance_relay_refactor.md</code>,
+    <code>part11_remaining_hardening.md</code>, <code>part11_hardening_change_report.md</code>, and
+    <code>os_delegated_signing_option2.md</code>. Formatting mirrors the GIMS backend refactor report.
+    Product messaging remains "designed to support 21 CFR Part 11" — formal validation is the customer's.</p>
+</div></footer>
+
+</body>
+</html>

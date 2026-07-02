@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evan Brown | Full-Stack AI Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;1,300&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0d1f3c;
+            --navy-mid: #1a3560;
+            --navy-soft: #2e4f80;
+            --steel-light: #7a95b0;
+            --rule: #c8d4e0;
+            --rule-light: #e4eaf0;
+            --accent: #1a6b3c;
+            --accent-light: #e8f4ee;
+            --bg: #ffffff;
+            --bg-off: #f7f9fb;
+            --text: #1a1f2e;
+            --text-mid: #2d3748;
+            --text-soft: #4a5568;
+            --text-muted: #718096;
+            --serif: 'Libre Baskerville', Georgia, serif;
+            --sans: 'Source Sans 3', sans-serif;
+            --mono: 'Source Code Pro', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            background: #e8edf2;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            padding: 40px 20px;
+        }
+
+        .page {
+            max-width: 860px;
+            margin: 0 auto;
+            background: var(--bg);
+            box-shadow: 0 4px 32px rgba(13,31,60,0.12);
+        }
+
+        .header {
+            background: var(--navy);
+            padding: 44px 56px 38px;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent) 0%, #2d9e5f 50%, transparent 100%);
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 32px;
+            align-items: end;
+        }
+
+        .credentials {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--steel-light);
+            margin-bottom: 12px;
+        }
+
+        .name {
+            font-family: var(--serif);
+            font-size: 38px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.05;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .header-title {
+            font-size: 14px;
+            font-weight: 300;
+            color: #a8bdd4;
+            letter-spacing: 0.03em;
+        }
+
+        .header-title strong {
+            color: #d0e2f0;
+            font-weight: 600;
+        }
+
+        .contact-block {
+            text-align: right;
+        }
+
+        .contact-item {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: #8aaac4;
+            line-height: 2.2;
+        }
+
+        .contact-item a {
+            color: #a8c4da;
+            text-decoration: none;
+        }
+
+        .summary-bar {
+            background: var(--bg-off);
+            border-bottom: 1px solid var(--rule);
+            padding: 24px 56px;
+        }
+
+        .summary-text {
+            font-family: var(--serif);
+            font-size: 13.5px;
+            font-style: italic;
+            line-height: 1.8;
+            color: var(--text-mid);
+        }
+
+        .summary-text strong {
+            font-style: normal;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        /* FLEXBOX ARCHITECTURE */
+        .body {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .main-col {
+            flex: 1;
+            padding: 40px 44px 48px 56px;
+            border-right: 1px solid var(--rule);
+        }
+
+        .side-col {
+            width: 200px;
+            padding: 40px 28px 48px;
+            background: var(--bg-off);
+            flex-shrink: 0;
+        }
+
+        .section {
+            margin-bottom: 36px;
+        }
+
+        .section-title {
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--navy-soft);
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--navy);
+            width: 100%;
+            display: block;
+        }
+
+        .role {
+            margin-bottom: 28px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid var(--rule-light);
+            break-inside: auto; /* Allows roles to span pages if needed */
+        }
+
+        .role:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .role-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+
+        .role-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .role-dates {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .role-org {
+            font-size: 12.5px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .role-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .bullets {
+            list-style: none;
+        }
+
+        .bullets li {
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-soft);
+            font-weight: 400;
+            padding-left: 16px;
+            position: relative;
+            margin-bottom: 7px;
+            break-inside: avoid;
+        }
+
+        .bullets li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--rule);
+        }
+
+        .bullets li strong {
+            font-weight: 600;
+            color: var(--text-mid);
+        }
+
+        .side-section {
+            margin-bottom: 28px;
+        }
+
+        .side-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .side-title {
+            font-family: var(--mono);
+            font-size: 8.5px;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--navy-soft);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .skill-group {
+            margin-bottom: 14px;
+        }
+
+        .skill-group-label {
+            font-family: var(--mono);
+            font-size: 8.5px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .skill-list {
+            font-size: 12px;
+            color: var(--text-soft);
+            line-height: 1.9;
+        }
+
+        .highlight-box {
+            background: var(--accent-light);
+            border-left: 3px solid var(--accent);
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .highlight-number {
+            font-family: var(--serif);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .highlight-label {
+            font-size: 11px;
+            color: var(--text-soft);
+            line-height: 1.4;
+        }
+
+        .edu-item {
+            margin-bottom: 14px;
+        }
+
+        .edu-degree {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .edu-field {
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .edu-school {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        .edu-year {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        @media print {
+            @page {
+                size: letter;
+                margin: 0.42in;
+            }
+
+            html, body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .page {
+                box-shadow: none;
+                max-width: none;
+                width: 100%;
+            }
+
+            /* FORCE FLEXBOX LAYOUT DURING PRINT */
+            .body {
+                display: flex !important;
+                flex-direction: row !important;
+            }
+
+            .main-col {
+                flex: 1 !important;
+                padding: 34px 32px 36px 42px !important;
+                border-right: 1px solid var(--rule) !important;
+            }
+
+            .side-col {
+                width: 200px !important;
+                padding: 34px 0 36px 20px !important;
+                background: transparent !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Portfolio back-link: on-screen only, never prints -->
+<a href="index.html" style="position:fixed;top:16px;left:16px;z-index:999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;font-weight:600;color:#e6e9ef;background:rgba(20,25,38,0.92);border:1px solid #2e3a52;border-radius:8px;padding:7px 12px;text-decoration:none;backdrop-filter:blur(6px);" onmouseover="this.style.borderColor='#4f8cff'" onmouseout="this.style.borderColor='#2e3a52'">← Portfolio</a>
+<style>@media print { a[href="index.html"]{ display:none !important; } }</style>
+<div class="page">
+
+    <div class="header">
+        <div class="header-grid">
+            <div>
+                <div class="credentials">Full-Stack Builder &nbsp;·&nbsp; Client-Facing Engineering &nbsp;·&nbsp; AI-First Workflows</div>
+                <h1 class="name">Evan Brown</h1>
+                <div class="header-title"><strong>Principal Solutions Architect</strong> &nbsp;&nbsp;Full-Stack AI Engineer &nbsp;&nbsp;M.S. Microbiology, Colorado State University</div>
+            </div>
+            <div class="contact-block">
+                <div class="contact-item">Highlands Ranch, CO</div>
+                <div class="contact-item">evanbr93@gmail.com</div>
+                <div class="contact-item">github.com/BMA-Corgea</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-bar">
+        <p class="summary-text">
+            <strong>Full-stack systems builder</strong> with eight years delivering software, compliance automation, and client-facing technical systems for regulated laboratory operations. Built Python/FastAPI workflow infrastructure with audit trails, role-based permissions, instrument ingestion, and automatic artifact generation. Daily hands-on Claude Code and Codex user building model-agnostic agent orchestration on MCP-layer tooling. Trusted across <strong>seven regulatory jurisdictions</strong>, with <strong>zero accreditations lost</strong> and <strong>$600K+ consulting revenue</strong> generated through automation-centric engagements.
+        </p>
+    </div>
+
+    <div class="body">
+        <div class="main-col">
+
+            <div class="section">
+                <div class="section-title">Professional Experience</div>
+
+                <div class="role">
+                    <div class="role-top">
+                        <div class="role-title">Founder &amp; Lead Engineer</div>
+                        <div class="role-dates">2025 – Present</div>
+                    </div>
+                    <div class="role-org">GIMS Technologies &nbsp;·&nbsp; Agentic Systems &amp; Lab Informatics</div>
+                    <div class="role-sub">GUTS · GOMS · GIMS &nbsp;·&nbsp; Python · FastAPI · PostgreSQL · MCP · Claude Code · Codex · AWS</div>
+                    <ul class="bullets">
+                        <li>Founded GIMS Technologies to build and own <strong>GUTS</strong>, an event-sourced substrate that unifies a fleet of agentic organs on one append-only ledger, so agents coordinate through shared state rather than point-to-point messaging.</li>
+                        <li>Built <strong>GOMS, a model-agnostic multi-agent development platform</strong> that turns software goals into planned, claimable, executable work across coder, debugger, inspector, and architect agents.</li>
+                        <li>Designed the orchestration layer around <strong>MCP-compatible tooling</strong>, allowing Claude Code, Codex, and future compliant tools to run through the same task, review, and execution pipeline without platform-specific rewrites.</li>
+                        <li>Implemented <strong>atomic SQL job claiming</strong> to prevent duplicate execution and corrupted state when multiple workers claim or complete the same task concurrently, with a <strong>fail-closed safety pipeline</strong> covering prompt-injection screening, destructive-operation gating, file-scope checks, leaked-secret detection, and test status before merge.</li>
+                        <li>Integrated <strong>hula-loop</strong> for headless, multi-pass code review in which each round reads prior findings, and built a FastAPI backend with a <strong>vanilla JavaScript SPA</strong> over server-sent events for live agent observability, plus WhatsApp delivery via an <strong>OpenClaw integration</strong> with no architectural change.</li>
+                        <li>Designed and built <strong>GIMS</strong>, the company's deployed product: a schema-driven laboratory workflow engine with audit trails, role-based permissions, automatic artifact generation, instrument data ingestion, and configurable workflows added through configuration files and parsers rather than core rewrites.</li>
+                        <li>Built <strong>GIMS Compliance Relay</strong>, a 21 CFR Part 11 compliance layer for pharmaceutical instrumentation, creating a compliant operating path for regulated lab equipment that lacked adequate surrounding software controls.</li>
+                        <li>Delivered a <strong>grounded RAG pipeline</strong> (FastAPI, React, Supabase, pgvector, LightRAG) with per-document isolation, relevance gating, and fail-closed behavior so the system surfaces uncertainty rather than generating unsupported answers.</li>
+                    </ul>
+                </div>
+
+                <div class="role">
+                    <div class="role-top">
+                        <div class="role-title">Principal Solutions Architect</div>
+                        <div class="role-dates">2022 – Present</div>
+                    </div>
+                    <div class="role-org">Equilibrium Scientific LLC</div>
+                    <div class="role-sub">Compliance Automation · Statistical Validation · LIMS Architecture · Multi-Jurisdiction Accreditation</div>
+                    <ul class="bullets">
+                        <li>Architected and delivered compliance systems for <strong>six-to-eight-figure laboratory operations</strong> across Colorado, New Mexico, South Dakota, New York, Akwesasne, Michigan, and the Caribbean.</li>
+                        <li>Served as primary technical authority for validation architecture, reporting systems, accreditation strategy, and compliance automation across concurrent client engagements.</li>
+                        <li>Rescued a Michigan ISO/IEC 17025 accreditation cycle by compressing approximately three months of unfinished preparation into <strong>two weeks</strong>; maintained <strong>zero accreditations lost</strong> across engagements.</li>
+                        <li>Designed and built a TypeScript-based <strong>Certificate of Analysis generation system</strong> using schema-driven reporting templates to absorb jurisdiction-specific reporting requirements without increasing operator burden.</li>
+                        <li>Engineered automated statistical validation frameworks covering accuracy, precision, LOD/LOQ, robustness, and reproducibility across <strong>10+ assay categories</strong>, including microbiology, potency, residual solvents, heavy metals, and mycotoxins.</li>
+                        <li>Built reproducible ingestion and normalization pipelines that converted laboratory instrument output into structured, auditable reporting schemas.</li>
+                        <li>Led cross-functional teams of 5–10 through accreditation cycles, aligning workflow execution, documentation standards, staff readiness, and regulatory expectations.</li>
+                        <li>Generated <strong>$600K+ in consulting revenue</strong> through automation-centric systems, compliance architecture, and technical implementation engagements.</li>
+                    </ul>
+                </div>
+
+                <div class="role">
+                    <div class="role-top">
+                        <div class="role-title">Sterility Laboratory Technician</div>
+                        <div class="role-dates">2019 – 2022</div>
+                    </div>
+                    <div class="role-org">Eurofins Scientific, Centennial, CO</div>
+                    <div class="role-sub">ISO 14644 Cleanroom · LIMS Operations · Regulated Lab Workflows</div>
+                    <ul class="bullets">
+                        <li>Operated daily within an ISO 14644-classified clinical cleanroom, executing sterility workflows in a regulated LIMS environment with strict documentation and contamination-control requirements.</li>
+                        <li>Identified recurring mismatches between laboratory software workflows and bench-level execution, informing later work in compliance automation, workflow design, and LIMS architecture.</li>
+                    </ul>
+                </div>
+
+                <div class="role">
+                    <div class="role-top">
+                        <div class="role-title">Data Analyst</div>
+                        <div class="role-dates">2018 – 2019</div>
+                    </div>
+                    <div class="role-org">Bio-Techne</div>
+                    <div class="role-sub">Process Automation · Data Cleanup · VBA Scripting</div>
+                    <ul class="bullets">
+                        <li>Automated a multi-hour weekly pricing reconciliation process with VBA, reducing recurring execution time to approximately <strong>20 minutes</strong>.</li>
+                        <li>Standardized repeatable data-cleanup steps to reduce manual review burden and improve consistency in pricing operations.</li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="side-col">
+
+            <div class="side-section">
+                <div class="side-title">Core Competencies</div>
+                <div class="skill-list">
+                    Full-Stack Delivery<br>
+                    AI-Assisted Development<br>
+                    Agent Orchestration<br>
+                    Compliance Automation<br>
+                    Regulated Workflows<br>
+                    Client-Facing Engineering<br>
+                    API &amp; Tool Integrations<br>
+                    Workflow Architecture<br>
+                    Technical Leadership<br>
+                    Systems Thinking
+                </div>
+            </div>
+
+            <div class="side-section">
+                <div class="side-title">Technical Skills</div>
+                <div class="skill-group">
+                    <div class="skill-group-label">Languages</div>
+                    <div class="skill-list">Python · TypeScript<br>JavaScript · Bash<br>HTML · CSS · VBA</div>
+                </div>
+                <div class="skill-group">
+                    <div class="skill-group-label">Frontend</div>
+                    <div class="skill-list">React<br>Vanilla JS SPAs<br>Responsive Web UIs</div>
+                </div>
+                <div class="skill-group">
+                    <div class="skill-group-label">Backend &amp; APIs</div>
+                    <div class="skill-list">FastAPI · REST APIs<br>Server-Sent Events<br>MCP Integrations</div>
+                </div>
+                <div class="skill-group">
+                    <div class="skill-group-label">Data &amp; Cloud</div>
+                    <div class="skill-list">PostgreSQL · pgvector<br>Supabase · SQLite<br>AWS EC2 · RDS · S3</div>
+                </div>
+                <div class="skill-group">
+                    <div class="skill-group-label">AI Tooling</div>
+                    <div class="skill-list">Claude Code<br>Codex<br>Claude API · LightRAG<br>MCP-Layer Workflows</div>
+                </div>
+            </div>
+
+            <div class="side-section">
+                <div class="side-title">By the Numbers</div>
+                <div class="highlight-box">
+                    <div class="highlight-number">7</div>
+                    <div class="highlight-label">regulatory jurisdictions served</div>
+                </div>
+                <div class="highlight-box">
+                    <div class="highlight-number">10+</div>
+                    <div class="highlight-label">assay categories automated</div>
+                </div>
+                <div class="highlight-box">
+                    <div class="highlight-number">$600K+</div>
+                    <div class="highlight-label">consulting revenue generated</div>
+                </div>
+                <div class="highlight-box">
+                    <div class="highlight-number">0</div>
+                    <div class="highlight-label">client accreditations lost</div>
+                </div>
+            </div>
+
+            <div class="side-section">
+                <div class="side-title">Education</div>
+                <div class="edu-item">
+                    <div class="edu-degree">M.S.</div>
+                    <div class="edu-field">Microbiology</div>
+                    <div class="edu-school">Colorado State University</div>
+                    <div class="edu-year">2017</div>
+                </div>
+                <div class="edu-item">
+                    <div class="edu-degree">B.S.</div>
+                    <div class="edu-field">Biological Sciences</div>
+                    <div class="edu-school">Colorado State University</div>
+                    <div class="edu-year">2015</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

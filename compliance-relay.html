@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GIMS Compliance Relay Case Study · Evan</title>
+  <meta name="description" content="An immutable, cryptographically-sealed audit trail for regulated industry, built against 21 CFR Part 11. Live demo, active pharma pilot." />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html"><span class="mark">E</span> Evan</a>
+      <nav class="nav-links">
+        <a href="gims.html">GIMS</a>
+        <a href="compliance-relay.html">Compliance Relay</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="about.html">About</a>
+        <a href="resume.html">Resume</a>
+        <a class="btn btn-ghost" href="https://github.com/BMA-Corgea" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="container cs-header">
+      <div class="eyebrow">Case study · Compliance &amp; regulated industry</div>
+      <h1 class="cs-title">GIMS Compliance Relay</h1>
+      <p class="lede" style="color:var(--muted); max-width:62ch;">
+        A tamper-proof audit trail for environments that answer to regulators. It records who
+        touched what and when, signs it cryptographically, and exports evidence anyone can verify
+        offline, built against <strong>21 CFR Part 11</strong>.
+      </p>
+      <div class="cs-meta">
+        <span class="tag"><span class="dot warm"></span> Active pharma pilot · ~$5k</span>
+        <span class="tag">21 CFR Part 11</span>
+        <span class="tag">HMAC-sealed exports</span>
+      </div>
+      <div class="btn-row" style="margin-top:22px;">
+        <a class="btn btn-primary" href="https://gims-compliance-relay-demo.vercel.app/" target="_blank" rel="noopener">Open Live demo ↗</a>
+        <a class="btn" href="compliance-relay-refactor-report.html">Full engineering report →</a>
+      </div>
+    </section>
+
+    <section class="container section-tight">
+
+      <div class="step">
+        <div class="num">01</div>
+        <div>
+          <h3>The problem</h3>
+          <div class="step-body">
+            <p>
+              In regulated industries (pharma, healthcare, anything the FDA watches), you don't just
+              have to do the work correctly. You have to <em>prove</em> it: who performed each action, when,
+              and that the record hasn't been altered since. That's the heart of
+              <strong>21 CFR Part 11</strong>, the rule governing electronic records and signatures.
+            </p>
+            <p>
+              Done manually, this is slow, error-prone, and fragile. A trail nobody can trust is
+              worthless. The record has to be <strong>immutable by construction</strong> and verifiable by an
+              auditor who wasn't there and doesn't trust your database.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">02</div>
+        <div>
+          <h3>What I built</h3>
+          <div class="step-body">
+            <p>
+              The Compliance Relay sits alongside the work and captures it automatically. A file
+              watcher records operations under an authenticated operator identity and writes them to an
+              append-only, cryptographically-verifiable trail. When it's time to hand evidence to an
+              auditor, a <strong>sealed export</strong> binds the selected records to a chain-of-custody report
+              with an HMAC signature, verifiable offline, without access to the live system.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">03</div>
+        <div>
+          <h3>How it works</h3>
+          <div class="step-body">
+            <ul class="feature-list">
+              <li><strong>Immutable audit trail</strong> — every capture, signature, access, export, and system change is logged append-only with cryptographic verification.</li>
+              <li><strong>File watcher</strong> — automatically captures file operations under the acting operator's identity, so the trail writes itself.</li>
+              <li><strong>Sealed export</strong> — binds a set of records to a chain-of-custody report via HMAC, so tampering after the fact is detectable offline.</li>
+              <li><strong>Electronic signatures</strong> — password re-authentication per signing event, meeting 21 CFR Part 11 §11.200.</li>
+              <li><strong>Authorization layer</strong> — only authorized reviewers can view or export the trail.</li>
+              <li><strong>Multi-format export</strong> — CSV and JSON, watermarked in demonstration mode.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">04</div>
+        <div>
+          <h3>Try it</h3>
+          <div class="step-body">
+            <p>The live demo walks through capture, signing, and a sealed export end to end.</p>
+            <div class="btn-row" style="margin-top:6px;">
+              <a class="btn btn-primary" href="https://gims-compliance-relay-demo.vercel.app/" target="_blank" rel="noopener">Live demo ↗</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">05</div>
+        <div>
+          <h3>Status &amp; traction</h3>
+          <div class="step-body">
+            <p>
+              The Relay is in an <strong>active pilot with a pharma company</strong>, with a ~$5k engagement
+              close to signed. It's built to a real regulatory standard rather than a generic
+              "audit log": the compliance detail is the product. Honest status: deployed, in a live
+              sales conversation, and being pushed toward a first production deployment.
+            </p>
+            <p>
+              It's the compliance organ of the broader
+              <a class="gradient-text" href="roadmap.html">GIMS system →</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>© <span data-year>2026</span> GIMS Technologies. Built by hand.</span>
+      <span><a href="https://github.com/BMA-Corgea" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:evanbr93@gmail.com">Email</a> · <a href="https://www.linkedin.com/in/evan-brown-7abb97332/" target="_blank" rel="noopener">LinkedIn</a></span>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

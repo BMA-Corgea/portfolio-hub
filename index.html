@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evan · Solutions Architecture &amp; AI Engineering</title>
+  <meta name="description" content="I build systems that put structure around messy operational work, and get people to pay for them. GIMS and the GIMS Compliance Relay: live, and already earning." />
+  <meta property="og:title" content="Evan · Systems that structure operational work" />
+  <meta property="og:description" content="GIMS and the GIMS Compliance Relay: live products with real early paying customers." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <!-- NAME NOTE: "Evan" is used as the builder handle throughout.
+       Swap in a legal/display name here and in the footer + about.html when ready. -->
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html">
+        <span class="mark">E</span> Evan
+      </a>
+      <nav class="nav-links">
+        <a href="gims.html">GIMS</a>
+        <a href="compliance-relay.html">Compliance Relay</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="about.html">About</a>
+        <a href="resume.html">Resume</a>
+        <a class="btn btn-ghost" href="https://github.com/BMA-Corgea" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="container hero">
+      <div class="eyebrow">Solutions Architecture · AI Engineering</div>
+      <h1>I build systems that put structure around <span class="gradient-text">messy operational work</span>.</h1>
+      <p class="lede">
+        Two of them are live and have already earned real money: <strong>GIMS</strong>, a
+        schema-driven platform that models any workflow as a grammar, and its
+        <strong>Compliance Relay</strong>, a tamper-proof audit trail built for regulated industry.
+        Below is what they do, how they're built, and where they're headed.
+      </p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="#work">See the products <span class="arrow">→</span></a>
+        <a class="btn" href="about.html">About me</a>
+      </div>
+    </section>
+
+    <!-- WORK -->
+    <section class="container section" id="work">
+      <div class="section-label">Shipped &amp; earning</div>
+      <div class="grid grid-2">
+
+        <!-- GIMS -->
+        <article class="card">
+          <div class="kicker">Information management · open source</div>
+          <h3>GIMS</h3>
+          <p class="card-sub">
+            A generalized information-management system. Instead of hard-coded modules, you
+            describe your domain as a <em>grammar</em> (nouns, verbs, adjectives) and GIMS
+            becomes a tracker for it. A lab today, HR onboarding tomorrow, from the same engine.
+          </p>
+          <div class="card-foot">
+            <span class="tag"><span class="dot"></span> First paying client · $3k</span>
+            <a class="btn btn-ghost" href="gims.html">Case study <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+        <!-- Compliance Relay -->
+        <article class="card">
+          <div class="kicker">Compliance · regulated industry</div>
+          <h3>GIMS Compliance Relay</h3>
+          <p class="card-sub">
+            An immutable, cryptographically-sealed audit trail for environments that answer to
+            regulators. Captures who touched what and when, signs it, and exports evidence you
+            can verify offline, built against 21 CFR Part 11.
+          </p>
+          <div class="card-foot">
+            <span class="tag"><span class="dot warm"></span> Active pharma pilot · ~$5k</span>
+            <a class="btn btn-ghost" href="compliance-relay.html">Case study <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- BIGGER PICTURE / ROADMAP TEASER -->
+    <section class="container section">
+      <div class="grid grid-2" style="align-items:center;">
+        <div>
+          <div class="section-label">Not one-offs</div>
+          <h2>These are the first pieces of one system.</h2>
+          <p style="color:var(--muted); max-width:52ch;">
+            GIMS and the Compliance Relay are the shipped organs of a larger design for
+            running an organization's operational memory. Three more are on the roadmap:
+            GEDS, GOMS, and GONS.
+          </p>
+          <div class="btn-row">
+            <a class="btn" href="roadmap.html">See the roadmap <span class="arrow">→</span></a>
+          </div>
+        </div>
+        <div class="frame" aria-hidden="true">
+          <div class="frame-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="url">gims-demo.vercel.app</span>
+          </div>
+          <div class="frame-body">
+            <div>
+              <div class="organ-code" style="font-size:2.4rem;">GIMS</div>
+              <p class="placeholder-note">Live interactive demo. No account, no install.</p>
+              <div class="btn-row" style="justify-content:center; margin-top:14px;">
+                <a class="btn btn-primary" href="https://gims-demo.vercel.app/" target="_blank" rel="noopener">Open demo ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>© <span data-year>2026</span> GIMS Technologies. Built by hand.</span>
+      <span>
+        <a href="https://github.com/BMA-Corgea" target="_blank" rel="noopener">GitHub</a> ·
+        <a href="mailto:evanbr93@gmail.com">Email</a> · <a href="https://www.linkedin.com/in/evan-brown-7abb97332/" target="_blank" rel="noopener">LinkedIn</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

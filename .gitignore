@@ -1,0 +1,6 @@
+# dependencies / tooling (none currently, but keep it clean)
+node_modules/
+.vercel/
+.DS_Store
+
+# do NOT ignore proposals/ — that's project memory, kept in git
